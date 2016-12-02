@@ -1,222 +1,230 @@
-import * as assert from 'intern/chai!assert';
-import * as registerSuite from 'intern!object';
-
-import ReadableStreamReader, { ReadResult } from '../../src/ReadableStreamReader';
-import ReadableStream, { State, Source } from '../../src/ReadableStream';
-import BaseStringSource from './helpers/BaseStringSource';
 import Promise from 'dojo-shim/Promise';
+import ReadableStream, { State } from '../../src/ReadableStream';
 
-const ASYNC_TIMEOUT = 1000;
-let stream: ReadableStream<string>;
-let source: Source<string>;
-let reader: ReadableStreamReader<string>;
+interface ReadRequest<T> {
+	promise: Promise<ReadResult<T>>;
+	resolve: (value: ReadResult<T>) => void;
+	reject: (reason: any) => void;
+}
 
-registerSuite({
-	name: 'ReadableStreamReader',
+/**
+ * Represents the objects returned by {@link ReadableStreamReader#read}. The data is accessible on the `value` property.
+ * If the `done` property is true, the stream has no more data to provide.
+ */
+export interface ReadResult<T> {
+	readonly value: T | undefined;
+	readonly done: boolean;
+}
 
-	beforeEach() {
-		source = new BaseStringSource();
-		stream = new ReadableStream<string>(source, {
-			size(chunk: string) {
-				return 1;
-			},
-			highWaterMark: Infinity
+function isReadableStreamReader<T>(readableStreamReader: ReadableStreamReader<T>): boolean {
+	return Object.prototype.hasOwnProperty.call(readableStreamReader, '_ownerReadableStream');
+}
+
+/**
+ * This class provides the interface for reading data from a stream. A reader can by acquired by calling
+ * {@link ReadableStream#getReader}. A {@link ReadableStream} can only have a single reader at any time. A reader can
+ * be released from the stream by calling {@link ReadableStreamReader.releaseLock}. If the stream still has data, a new
+ * reader can be acquired to read from the stream.
+ */
+export default class ReadableStreamReader<T> {
+	get closed(): Promise<void> {
+		return this._closedPromise;
+	}
+
+	private readonly _closedPromise: Promise<void>;
+	private _storedError: Error | undefined;
+	private _readRequests: ReadRequest<T>[];
+	private _resolveClosedPromise: () => void;
+	private _rejectClosedPromise: (error: Error) => void;
+
+	protected _ownerReadableStream: ReadableStream<T> | undefined;
+
+	state: State;
+
+	constructor(stream: ReadableStream<T>) {
+		if (!stream.readable) {
+			throw new TypeError('3.4.3-1: stream must be a ReadableStream');
+		}
+
+		if (stream.locked) {
+			throw new TypeError('3.4.3-2: stream cannot be locked');
+		}
+
+		(<any> stream).reader = this;
+		this._ownerReadableStream = stream;
+		this.state = State.Readable;
+		this._storedError = undefined;
+		this._readRequests = [];
+		this._closedPromise = new Promise<void>((resolve, reject) => {
+			this._resolveClosedPromise = resolve;
+			this._rejectClosedPromise = reject;
 		});
-		reader = stream.getReader();
-	},
 
-	'constructor': {
-		'throws an error if no stream is present'() {
-			assert.throws(function () {
-				new ReadableStreamReader(<any> null);
-			});
-		},
+		this._closedPromise.catch(() => {
+		});
+	}
 
-		'throws an error if the stream is not readable'() {
-			Object.defineProperty(stream, 'readable', {
-				value: false
-			});
-			assert.throws(function () {
-				new ReadableStreamReader(stream);
-			});
-		},
-
-		'throws an error if the stream is locked'() {
-			assert.throws(function () {
-				new ReadableStreamReader(<ReadableStream<string>> {});
-			});
-		},
-
-		'closed stream'() {
-			stream.state = State.Closed;
-			assert.throws(function () {
-				new ReadableStreamReader(stream);
-			});
-		},
-
-		'error stream'() {
-			stream.state = State.Errored;
-			assert.throws(function () {
-				new ReadableStreamReader(stream);
-			});
-		}
-	},
-
-	'closed promise': {
-		'resolve on cancel'(this: any) {
-			let dfd = this.async(ASYNC_TIMEOUT);
-			reader.closed.then(dfd.callback(function () {}));
-			reader.cancel('reason');
-		},
-
-		'resolve on stream close'(this: any) {
-			let dfd = this.async(ASYNC_TIMEOUT);
-			reader.closed.then(
-				dfd.callback(function () {}),
-				dfd.rejectOnError(function () {
-					assert.fail();
-				})
-			);
-			stream.close();
+	/**
+	 * Cancel a stream. The reader is released and the stream is closed. {@link ReadableStream.Source#cancel} is
+	 * called with the provided `reason`.
+	 *
+	 * @param reason The reason for canceling the stream
+	 */
+	cancel(reason: string): Promise<void> {
+		if (!isReadableStreamReader(this)) {
+			return Promise.reject(new TypeError('3.4.4.2-1: Must be a ReadableStreamReader instance'));
 		}
 
-	},
+		if (this.state === State.Closed) {
+			return Promise.resolve();
+		}
 
-	'cancel()': {
-		'resolves if the reader is closed'(this: any) {
-			let dfd = this.async(ASYNC_TIMEOUT);
-			reader.state = State.Closed;
-			reader.cancel('reason').then(dfd.callback(function () {}));
-		},
+		const storedError = <Error> this._storedError;
+		if (this.state === State.Errored) {
+			return Promise.reject(storedError);
+		}
 
-		'rejects if the reader is errored'(this: any) {
-			let dfd = this.async(ASYNC_TIMEOUT);
-			reader.state = State.Errored;
-			reader.cancel('reason').then(dfd.rejectOnError(function () {}), dfd.callback(function () {}));
-		},
+		if (this._ownerReadableStream && this._ownerReadableStream.state === State.Readable) {
+			return this._ownerReadableStream.cancel(reason);
+		}
 
-		'rejects with an error if state is readable and the owner stream state is not'(this: any) {
-			let dfd = this.async(ASYNC_TIMEOUT);
-			reader.state = State.Readable;
-			stream.state = State.Errored;
-			reader.cancel('reason').then(dfd.rejectOnError(function () {}), dfd.callback(function () {}));
-		},
+		// 3.4.4.2-4,5 - the spec calls for this to throw an error. We have changed it to reject instead
+		return Promise.reject(new TypeError('3.4.4.2-4,5: Cannot cancel ReadableStreamReader'));
+	}
 
-		'calls the stream cancel method'() {
-			let cancelCalled = false;
-			(<any> stream)._cancel = function () {
-				cancelCalled = true;
-				return Promise.resolve();
+	/**
+	 * Read data from the stream.
+	 *
+	 * @returns A promise that resolves to a {@link ReadResult}.
+	 */
+	// This method also incorporates the ReadFromReadableStreamReader from 3.5.12.
+	read(): Promise<ReadResult<T>> {
+		if (!isReadableStreamReader(this)) {
+			return Promise.reject<ReadResult<T>>(new TypeError('3.4.4.3-1: Must be a ReadableStreamReader instance'));
+		}
+
+		if (this.state === State.Closed) {
+			return Promise.resolve({
+				value: undefined,
+				done: true
+			});
+		}
+
+		if (this.state === State.Errored) {
+			return Promise.reject<ReadResult<T>>(new TypeError('3.5.12-2: reader state is Errored'));
+		}
+
+		const stream = this._ownerReadableStream;
+		if (!stream || stream.state !== State.Readable) {
+			throw new TypeError('3.5.12-3,4: Stream must exist and be readable');
+		}
+
+		const queue = stream.queue;
+		if (queue.length > 0) {
+			const chunk = queue.dequeue();
+			if (stream.closeRequested && !queue.length) {
+				stream.close();
+			}
+			else {
+				stream.pull();
+			}
+			return Promise.resolve({
+				value: chunk,
+				done: false
+			});
+		}
+		else {
+			let readResolve: (value: ReadResult<T>) => void = () => {
 			};
-			reader.cancel('reason');
-			assert.isTrue(cancelCalled);
-		},
+			let readReject: (reason: any) => void = () => {
+			};
 
-		'reject if not readable stream reader'(this: any) {
-			let dfd = this.async(ASYNC_TIMEOUT);
-			reader.cancel.call({}).then(
-				dfd.rejectOnError(function () {
-					assert.fail();
-				}),
-				dfd.callback(function () {})
-			);
-		}
-	},
-
-	'read()': {
-		'resolves with an undefined value if the state is closed'(this: any) {
-			let dfd = this.async(ASYNC_TIMEOUT);
-			reader.state = State.Closed;
-			reader.read().then(dfd.callback(function (result: ReadResult<string>) {
-				assert.isUndefined(result.value);
-				assert.isTrue(result.done);
-			}));
-		},
-
-		'rejects wth an error if the state is errored'(this: any) {
-			let dfd = this.async(ASYNC_TIMEOUT);
-			reader.state = State.Errored;
-			reader.read().then(
-				dfd.rejectOnError(function () {}),
-				dfd.callback(function () {})
-			);
-		},
-
-		'throws an error if the stream is not readable'() {
-			stream.state = State.Closed;
-			assert.throws(function () {
-				reader.read();
+			let readPromise = new Promise<ReadResult<T>>((resolve, reject) => {
+				readResolve = resolve;
+				readReject = reject;
 			});
-		},
 
-		'resolves with the chunk value'() {
-			let chunkValue = 'test';
-			stream.controller.enqueue(chunkValue);
-			return reader.read().then(function (result: ReadResult<string>) {
-				assert.strictEqual(result.value, chunkValue);
+			this._readRequests.push({
+				promise: readPromise,
+				resolve: readResolve,
+				reject: readReject
 			});
-		},
 
-		'reject if not readable stream reader'(this: any) {
-			let dfd = this.async(ASYNC_TIMEOUT);
-			reader.read.call({}).then(
-				dfd.rejectOnError(function () {
-					assert.fail();
-				}),
-				dfd.callback(function () {})
-			);
-		}
-	},
+			stream.pull();
 
-	'releaseLock()': {
-		'throws an error if there are pending read requests'() {
-			reader.read();
-			assert.throws(function () {
-				reader.releaseLock();
-			});
-		},
-
-		'releases the lock and closes the reader'(this: any) {
-			let dfd = this.async(ASYNC_TIMEOUT);
-			reader.closed.then(dfd.callback(function () {
-				assert.strictEqual(reader.state, State.Closed);
-			}));
-			reader.releaseLock();
-		},
-
-		'reject if not readable stream reader'() {
-			assert.throws(function () {
-				reader.releaseLock.call({});
-			});
-		},
-
-		'unlocked'() {
-			let result: any;
-			reader.releaseLock();
-			assert.doesNotThrow(function () {
-				result = reader.releaseLock();
-			});
-			assert.isUndefined(result);
-		}
-	},
-
-	'resolveReadRequest()': {
-		'returns false if there are no requests to resolve'() {
-			assert.isFalse(reader.resolveReadRequest('hello'));
-		},
-
-		'returns true if there are requests to resolve'() {
-			reader.read();
-			assert.isTrue(reader.resolveReadRequest('hello'));
-		},
-
-		'resolves the read with the resolved data'(this: any) {
-			let dfd = this.async(ASYNC_TIMEOUT);
-			let resultChunk = 'test';
-			reader.read().then(dfd.callback(function (result: ReadResult<string>) {
-				assert.strictEqual(result.value, resultChunk);
-			}));
-			reader.resolveReadRequest(resultChunk);
+			return readPromise;
 		}
 	}
-});
+
+	/**
+	 * Release a reader's lock on the corresponding stream. The reader will no longer be readable. Further reading on
+	 * the stream can be done by acquiring a new `ReadableStreamReader`.
+	 */
+	// 3.4.4.4. releaseLock()
+	releaseLock(): void {
+		if (!isReadableStreamReader(this)) {
+			throw new TypeError('3.4.4.4-1: Must be a ReadableStreamReader isntance');
+		}
+
+		if (!this._ownerReadableStream) {
+			return;
+		}
+
+		if (this._readRequests.length) {
+			throw new TypeError('3.4.4.4-3: Tried to release a reader lock when that reader has pending read calls un-settled');
+		}
+
+		this.release();
+	}
+
+	// 3.5.13. ReleaseReadableStreamReader ( reader )
+	release(): void {
+		let request: any;
+		if (this._ownerReadableStream && this._ownerReadableStream.state === State.Errored) {
+			this.state = State.Errored;
+
+			const e = this._ownerReadableStream.storedError;
+			this._storedError = e;
+			this._rejectClosedPromise(e);
+
+			for (request of this._readRequests) {
+				request.reject(e);
+			}
+		}
+		else {
+			this.state = State.Closed;
+			this._resolveClosedPromise();
+			for (request of this._readRequests) {
+				request.resolve({
+					value: undefined,
+					done: true
+				});
+			}
+		}
+
+		this._readRequests = [];
+		if (this._ownerReadableStream) {
+			this._ownerReadableStream.reader = undefined;
+		}
+		this._ownerReadableStream = undefined;
+	}
+
+	/**
+	 * Resolves a pending read request, if any, with the provided chunk.
+	 * @param chunk
+	 * @return boolean True if a read request was resolved.
+	 */
+	resolveReadRequest(chunk: T): boolean {
+		if (this._readRequests.length > 0) {
+			const readRequest = this._readRequests.shift();
+			if (readRequest) {
+				readRequest.resolve({
+					value: chunk,
+					done: false
+				});
+				return true;
+			}
+		}
+		return false;
+	}
+}
