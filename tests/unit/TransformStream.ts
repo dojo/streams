@@ -1,7 +1,7 @@
 import * as registerSuite from 'intern!object';
 import * as assert from 'intern/chai!assert';
 
-import Promise from 'dojo-shim/Promise';
+import Promise from '@dojo/shim/Promise';
 import { Strategy } from '../../src/interfaces';
 import { State as ReadableState } from '../../src/ReadableStream';
 import ReadableStreamReader, { ReadResult } from '../../src/ReadableStreamReader';
