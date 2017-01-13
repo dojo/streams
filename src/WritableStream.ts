@@ -1,4 +1,4 @@
-import Promise from 'dojo-shim/Promise';
+import Promise from '@dojo/shim/Promise';
 import { Strategy } from './interfaces';
 import SizeQueue from './SizeQueue';
 import * as util from './util';

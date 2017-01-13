@@ -1,7 +1,7 @@
 import * as registerSuite from 'intern!object';
 import * as assert from 'intern/chai!assert';
 
-import Evented from 'dojo-core/Evented';
+import Evented from '@dojo/core/Evented';
 import ReadableStream from '../../../src/ReadableStream';
 import ReadableStreamReader, { ReadResult } from '../../../src/ReadableStreamReader';
 import EventedStreamSource from '../../../src/adapters/EventedStreamSource';

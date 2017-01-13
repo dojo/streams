@@ -1,6 +1,6 @@
 import * as assert from 'intern/chai!assert';
 import * as registerSuite from 'intern!object';
-import has from 'dojo-has/has';
+import has from '@dojo/has/has';
 import ByteLengthQueuingStrategy from '../../src/ByteLengthQueuingStrategy';
 import WritableStream, { State } from '../../src/WritableStream';
 import ManualSink from './helpers/ManualSink';
