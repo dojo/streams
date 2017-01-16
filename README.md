@@ -2,7 +2,7 @@
 
 [![Build Status](https://travis-ci.org/dojo/streams.svg?branch=master)](https://travis-ci.org/dojo/streams)
 [![codecov](https://codecov.io/gh/dojo/streams/branch/master/graph/badge.svg)](https://codecov.io/gh/dojo/streams)
-[![npm version](https://badge.fury.io/js/@dojo/streams.svg)](http://badge.fury.io/js/@dojo/streams)
+[![npm version](https://badge.fury.io/js/%40dojo%2Fstreams.svg)](https://badge.fury.io/js/%40dojo%2Fstreams)
 
 An implementation of the [WHATWG Streams Spec](https://streams.spec.whatwg.org/).
 
