@@ -12,7 +12,7 @@ export const proxyUrl = 'http://localhost:9000/';
 export const capabilities = {
 	'browserstack.debug': false,
 	project: 'Dojo 2',
-	name: '@dojo/<< package-name >>'
+	name: '@dojo/streams'
 };
 
 // Browsers to run integration testing against. Note that version numbers must be strings if used with Sauce
@@ -53,7 +53,8 @@ export const loaderOptions = {
 	packages: [
 		{ name: 'src', location: '_build/src' },
 		{ name: 'tests', location: '_build/tests' },
-		{ name: 'dojo', location: 'node_modules/intern/node_modules/dojo' }
+		{ name: 'dojo', location: 'node_modules/intern/node_modules/dojo' },
+		{ name: '@dojo', location: 'node_modules/@dojo' }
 	]
 };
 
