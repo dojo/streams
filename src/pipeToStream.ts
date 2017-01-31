@@ -1,7 +1,7 @@
-import { Response, DataEvent } from 'dojo-core/request';
-import { NodeResponse } from 'dojo-core/request/providers/node';
 import WritableStream from './WritableStream';
-import Promise from 'dojo-shim/Promise';
+import { Response, DataEvent } from '@dojo/core/request';
+import { NodeResponse } from '@dojo/core/request/providers/node';
+import Promise from '@dojo/shim/Promise';
 
 export default function pipeToStream<T>(response: Response, stream: WritableStream<T>): Promise<WritableStream<T>> {
 	return new Promise<WritableStream<T>>((resolve) => {

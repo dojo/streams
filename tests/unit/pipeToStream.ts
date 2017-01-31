@@ -1,9 +1,9 @@
 import * as assert from 'intern/chai!assert';
 import * as registerSuite from 'intern!object';
 import pipeToStream from '../../src/pipeToStream';
-import { Headers, Response } from 'dojo-core/request';
-import { queueTask } from 'dojo-core/queue';
-import Task from 'dojo-core/async/Task';
+import { Headers, Response } from '@dojo/core/request';
+import { queueTask } from '@dojo/core/queue';
+import Task from '@dojo/core/async/Task';
 import ArraySink from '../../src/ArraySink';
 import WritableStream from '../../src/WritableStream';
 
