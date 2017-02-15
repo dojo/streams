@@ -1,7 +1,6 @@
-import WritableStream from './WritableStream';
 import { Response, DataEvent } from '@dojo/core/request';
-import { NodeResponse } from '@dojo/core/request/providers/node';
 import Promise from '@dojo/shim/Promise';
+import WritableStream from './WritableStream';
 
 export default function pipeToStream<T>(response: Response, stream: WritableStream<T>): Promise<WritableStream<T>> {
 	return new Promise<WritableStream<T>>((resolve) => {
@@ -15,8 +14,10 @@ export default function pipeToStream<T>(response: Response, stream: WritableStre
 		});
 
 		// don't want to save the body because the file could be huge
-		if (response instanceof NodeResponse) {
-			response.downloadBody = false;
+		// if the response supports it (NodeResponse), we want to set `downloadBody` to false, so we don't
+		// stream the entire body.
+		if ('downloadBody' in response) {
+			(<any> response).downloadBody = false;
 		}
 	});
 }
