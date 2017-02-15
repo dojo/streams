@@ -1,10 +1,10 @@
-import * as assert from 'intern/chai!assert';
-import * as registerSuite from 'intern!object';
-import pipeToStream from '../../src/pipeToStream';
-import { Headers, Response } from '@dojo/core/request';
-import { queueTask } from '@dojo/core/queue';
 import Task from '@dojo/core/async/Task';
+import { queueTask } from '@dojo/core/queue';
+import { Headers, Response } from '@dojo/core/request';
+import * as registerSuite from 'intern!object';
+import * as assert from 'intern/chai!assert';
 import ArraySink from '../../src/ArraySink';
+import pipeToStream from '../../src/pipeToStream';
 import WritableStream from '../../src/WritableStream';
 
 class MockResponse extends Response {
@@ -85,7 +85,12 @@ registerSuite({
 		const stream = new WritableStream<string>(sink);
 
 		return pipeToStream(response, stream).then(() => {
-			assert.deepEqual(sink.chunks, [ 'bit 1', 'bit 2' ]);
+			return new Promise((resolve) => {
+				setTimeout(function () {
+					assert.deepEqual(sink.chunks, [ 'bit 1', 'bit 2' ]);
+					resolve();
+				}, 10);
+			});
 		});
 	}
 });
