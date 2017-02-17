@@ -103,7 +103,7 @@ export default class ReadableStream<T> {
 	 */
 	// 3.5.7. GetReadableStreamDesiredSize ( stream )
 	get desiredSize(): number {
-		return this._strategy.highWaterMark - this.queueSize;
+		return this._strategy.highWaterMark! - this.queueSize;
 	}
 
 	get hasSource(): boolean {
@@ -203,7 +203,7 @@ export default class ReadableStream<T> {
 	protected _shouldApplyBackPressure(): boolean {
 		const queueSize = this.queue.totalSize;
 
-		return queueSize > this._strategy.highWaterMark;
+		return queueSize > this._strategy.highWaterMark!;
 	}
 
 	/**
