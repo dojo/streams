@@ -6,7 +6,23 @@
 
 An implementation of the [WHATWG Streams Spec](https://streams.spec.whatwg.org/).
 
+## Usage
+
+To use `@dojo/streams`, install the package along with its required peer dependencies:
+
+```bash
+npm install @dojo/streams
+
+# peer dependencies
+npm install @dojo/core
+npm install @dojo/has
+npm install @dojo/shim
+```
+
 ## Features
+
+- [ReadableStream](#readablestream)
+- [WritableStream](#writablestream)
 
 Two main objects in this module are `ReadableStream` and `WritableStream`.
 
@@ -44,7 +60,13 @@ writer.close();
 We appreciate your interest!  Please see the [Dojo 2 Meta Repository](https://github.com/dojo/meta#readme) for the
 Contributing Guidelines and Style Guide.
 
-## Testing
+### Installation
+
+To start working with this package, clone the repository and run `npm install`.
+
+In order to build the project run `grunt dev` or `grunt dist`.
+
+### Testing
 
 Test cases MUST be written using [Intern](https://theintern.github.io) using the Object test interface and Assert assertion interface.
 
