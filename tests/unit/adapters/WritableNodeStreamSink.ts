@@ -5,9 +5,9 @@ import WritableNodeStreamSink from '../../../src/adapters/WritableNodeStreamSink
 
 class WriteStream extends Writable {
 	writtenChunk: any;
-	writeCalled: boolean = false;
-	endCalled: boolean = false;
-	shouldThrowError: boolean = false;
+	writeCalled = false;
+	endCalled = false;
+	shouldThrowError = false;
 
 	_write(chunk: any, enc: string, next: Function) {
 		if (this.shouldThrowError) {
