@@ -147,7 +147,7 @@ export default class ReadableStream<T> {
 	protected readonly _strategy: Strategy<T>;
 	protected _underlyingSource: Source<T>;
 
-	closeRequested: boolean = false;
+	closeRequested = false;
 	controller: ReadableStreamController<T>;
 	pullScheduled: boolean;
 	readonly queue: SizeQueue<T>;

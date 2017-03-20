@@ -3,7 +3,7 @@ import ReadableStreamReader, { ReadResult } from './ReadableStreamReader';
 import SeekableStream from './SeekableStream';
 
 export default class SeekableStreamReader<T> extends ReadableStreamReader<T> {
-	protected _currentPosition: number = 0;
+	protected _currentPosition = 0;
 	protected _ownerReadableStream: SeekableStream<T>;
 
 	get currentPosition(): number {
