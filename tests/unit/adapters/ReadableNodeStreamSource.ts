@@ -1,5 +1,5 @@
-import * as registerSuite from 'intern!object';
-import * as assert from 'intern/chai!assert';
+const { registerSuite } = intern.getInterface('object');
+const { assert } = intern.getPlugin('chai');
 import { Readable } from 'stream';
 import Promise from '@dojo/shim/Promise';
 import ReadableStream from '../../../src/ReadableStream';
@@ -66,8 +66,7 @@ let stream: ReadableStream<string>;
 let source: ReadableNodeStreamSource;
 let controller: Controller;
 
-registerSuite({
-	name: 'ReadableNodeStreamSource',
+registerSuite('ReadableNodeStreamSource', {
 
 	beforeEach() {
 		nodeStream = new CountStream();
@@ -75,48 +74,50 @@ registerSuite({
 		controller = new Controller();
 	},
 
-	'start()'(this: any) {
-		let dfd = this.async(1000);
-		source.start(controller).then(dfd.resolve.bind(dfd), dfd.reject.bind(dfd));
-	},
+	tests: {
+		'start()'(this: any) {
+			let dfd = this.async(1000);
+			source.start(controller).then(dfd.resolve.bind(dfd), dfd.reject.bind(dfd));
+		},
 
-	'pull()'() {
-		source.pull(controller);
-		assert.strictEqual(controller.enqueuedValue, '0');
+		'pull()'() {
+			source.pull(controller);
+			assert.strictEqual(controller.enqueuedValue, '0');
 
-		source.pull(controller);
-		assert.strictEqual(controller.enqueuedValue, '1');
-	},
+			source.pull(controller);
+			assert.strictEqual(controller.enqueuedValue, '1');
+		},
 
-	'cancel()'(this: any) {
-		let dfd = this.async(1000);
-		source.start(controller).then(function () {
-			source.cancel().then(dfd.callback(function () {
-				assert.isTrue(controller.closed);
-			}));
-		});
-	},
+		'cancel()'(this: any) {
+			let dfd = this.async(1000);
+			source.start(controller).then(function () {
+				source.cancel().then(dfd.callback(function () {
+					assert.isTrue(controller.closed);
+				}));
+			});
+		},
 
-	'retrieve new data'() {
-		stream = new ReadableStream<string>(source, { highWaterMark: 1 });
-		let reader = stream.getReader();
-		let readIndex = 0;
+		'retrieve new data'() {
+			stream = new ReadableStream<string>(source, { highWaterMark: 1 });
+			let reader = stream.getReader();
+			let readIndex = 0;
 
-		function readNext(): Promise<void> {
-			return reader.read().then(function (result: ReadResult<string>) {
-				if (result.done) {
-					return Promise.resolve();
-				}
+			function readNext(): Promise<void> {
+				return reader.read().then(function (result: ReadResult<string>) {
+					if (result.done) {
+						return Promise.resolve();
+					}
 
-				assert.strictEqual(result.value, String(readIndex));
-				readIndex += 1;
+					assert.strictEqual(result.value, String(readIndex));
+					readIndex += 1;
 
+					return readNext();
+				});
+			}
+
+			return stream.started.then(function () {
 				return readNext();
 			});
 		}
-
-		return stream.started.then(function () {
-			return readNext();
-		});
 	}
 });

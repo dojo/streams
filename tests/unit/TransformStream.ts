@@ -1,5 +1,5 @@
-import * as registerSuite from 'intern!object';
-import * as assert from 'intern/chai!assert';
+const { registerSuite } = intern.getInterface('object');
+const { assert } = intern.getPlugin('chai');
 
 import Promise from '@dojo/shim/Promise';
 import { Strategy } from '../../src/interfaces';
@@ -42,8 +42,7 @@ let transform: Transform<number, string>;
 let stream: TransformStream<number, string>;
 let reader: ReadableStreamReader<number>;
 
-registerSuite({
-	name: 'TransformStream',
+registerSuite('TransformStream', {
 
 	beforeEach() {
 		transform = new CharToCodeTransform();
@@ -51,91 +50,93 @@ registerSuite({
 		reader = stream.readable.getReader();
 	},
 
-	'simple transform'() {
-		let testValue = 'a';
+	tests: {
+		'simple transform'() {
+			let testValue = 'a';
 
-		return stream.writable.write(testValue).then(function () {
-			return reader.read().then(function (result: ReadResult<number>) {
-				assert.strictEqual(result.value, testValue.charCodeAt(0));
+			return stream.writable.write(testValue).then(function () {
+				return reader.read().then(function (result: ReadResult<number>) {
+					assert.strictEqual(result.value, testValue.charCodeAt(0));
+				});
 			});
-		});
-	},
+		},
 
-	'async transform'() {
-		let testValues = ['a', 'b', 'c'];
-		let results: (undefined | number)[] = [];
+		'async transform'() {
+			let testValues = ['a', 'b', 'c'];
+			let results: (undefined | number)[] = [];
 
-		transform.transform = (chunk: string, enqueue: (chunk: number) => void, transformDone: () => void): void => {
-			setTimeout(function () {
-				enqueue(chunk.charCodeAt(0));
-				transformDone();
-			}, 20);
-		};
+			transform.transform = (chunk: string, enqueue: (chunk: number) => void, transformDone: () => void): void => {
+				setTimeout(function () {
+					enqueue(chunk.charCodeAt(0));
+					transformDone();
+				}, 20);
+			};
 
-		for (let testValue of testValues) {
-			stream.writable.write(testValue);
-		}
-
-		stream.writable.close();
-
-		function readNext(): Promise<void> {
-			return reader.read().then(function (result: ReadResult<number>) {
-				if (result.done) {
-					return Promise.resolve();
-				}
-				else {
-					results.push(result.value);
-					return readNext();
-				}
-			});
-		}
-
-		return readNext().then(function () {
-			for (let i = 0; i < results.length; i++) {
-				assert.strictEqual(results[i], testValues[i].charCodeAt(0));
+			for (let testValue of testValues) {
+				stream.writable.write(testValue);
 			}
-		});
-	},
 
-	'transform.flush throws error'() {
-		transform.flush = function () {
-			throw new Error('Transform#flush test error');
-		};
+			stream.writable.close();
 
-		return stream.writable.close().then(function () {
-			assert.fail(null, null, 'Errored stream should not resolve call to \'close\'');
-		}, function (error: Error) {
-			assert.strictEqual(stream.readable.state, ReadableState.Errored);
-			assert.strictEqual(stream.writable.state, WritableState.Errored);
-		});
-	},
+			function readNext(): Promise<void> {
+				return reader.read().then(function (result: ReadResult<number>) {
+					if (result.done) {
+						return Promise.resolve();
+					}
+					else {
+						results.push(result.value);
+						return readNext();
+					}
+				});
+			}
 
-	'transform.transform throws error'() {
-		transform.transform = function () {
-			throw new Error('Transform#transform test error');
-		};
+			return readNext().then(function () {
+				for (let i = 0; i < results.length; i++) {
+					assert.strictEqual(results[i], testValues[i].charCodeAt(0));
+				}
+			});
+		},
 
-		return stream.writable.write('a').then(function () {
-			assert.fail(null, null, 'Errored stream should not resolve call to \'write\'');
-		}, function (error: Error) {
-			assert.strictEqual(stream.readable.state, ReadableState.Errored);
-			assert.strictEqual(stream.writable.state, WritableState.Errored);
-		});
-	},
+		'transform.flush throws error'() {
+			transform.flush = function () {
+				throw new Error('Transform#flush test error');
+			};
 
-	'sink.abort resolves'() {
-		return stream.writable.abort('reason').then(() => {
-			assert.strictEqual(stream.writable.state, WritableState.Errored);
-		}, () => {
-			assert.fail('should have succeeded');
-		});
-	},
+			return stream.writable.close().then(function () {
+				assert.fail(null, null, 'Errored stream should not resolve call to \'close\'');
+			}, function (error: Error) {
+				assert.strictEqual(stream.readable.state, ReadableState.Errored);
+				assert.strictEqual(stream.writable.state, WritableState.Errored);
+			});
+		},
 
-	'sink.cancel resolves'() {
-		return stream.readable.cancel('reason').then(() => {
-			assert.strictEqual(stream.readable.state, ReadableState.Closed);
-		}, () => {
-			assert.fail('should have succeeded');
-		});
+		'transform.transform throws error'() {
+			transform.transform = function () {
+				throw new Error('Transform#transform test error');
+			};
+
+			return stream.writable.write('a').then(function () {
+				assert.fail(null, null, 'Errored stream should not resolve call to \'write\'');
+			}, function (error: Error) {
+				assert.strictEqual(stream.readable.state, ReadableState.Errored);
+				assert.strictEqual(stream.writable.state, WritableState.Errored);
+			});
+		},
+
+		'sink.abort resolves'() {
+			return stream.writable.abort('reason').then(() => {
+				assert.strictEqual(stream.writable.state, WritableState.Errored);
+			}, () => {
+				assert.fail('should have succeeded');
+			});
+		},
+
+		'sink.cancel resolves'() {
+			return stream.readable.cancel('reason').then(() => {
+				assert.strictEqual(stream.readable.state, ReadableState.Closed);
+			}, () => {
+				assert.fail('should have succeeded');
+			});
+		}
 	}
 });

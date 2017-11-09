@@ -1,5 +1,5 @@
-import * as assert from 'intern/chai!assert';
-import * as registerSuite from 'intern!object';
+const { assert } = intern.getPlugin('chai');
+const { registerSuite } = intern.getInterface('object');
 import has from '@dojo/has/has';
 import ByteLengthQueuingStrategy from '../../src/ByteLengthQueuingStrategy';
 import WritableStream, { State } from '../../src/WritableStream';
@@ -7,8 +7,7 @@ import ManualSink from './helpers/ManualSink';
 
 const ASYNC_TIMEOUT = 1000;
 
-registerSuite({
-	name: 'ByteLengthQueuingStrategy',
+registerSuite('ByteLengthQueuingStrategy', {
 
 	size(this: any) {
 		if (!has('arraybuffer')) {

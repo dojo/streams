@@ -129,7 +129,7 @@ export default class ReadableStreamReader<T> {
 				stream.pull();
 			}
 			return Promise.resolve({
-				value: chunk,
+				value: <T> chunk,
 				done: false
 			});
 		}

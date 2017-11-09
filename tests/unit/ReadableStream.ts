@@ -1,5 +1,5 @@
-import * as assert from 'intern/chai!assert';
-import * as registerSuite from 'intern!object';
+const { assert } = intern.getPlugin('chai');
+const { registerSuite } = intern.getInterface('object');
 
 import BaseStringSource from './helpers/BaseStringSource';
 import ArraySink from '../../src/ArraySink';
@@ -63,8 +63,7 @@ class ReadableStream<T> extends OriginalReadableStream<T> {
 const ASYNC_TIMEOUT = 1000;
 let strategy: Strategy<string>;
 
-registerSuite({
-	name: 'ReadableStream',
+registerSuite('ReadableStream', {
 
 	'constructor' : {
 
@@ -155,48 +154,50 @@ registerSuite({
 			};
 		},
 
-		'default strategy'() {
-			let source = new BaseStringSource();
-			let stream = new ReadableStream<string>(source);
-			assert.isNotNull(stream.strategy);
-			assert.isUndefined(stream.strategy.size);
-			assert.strictEqual(stream.strategy.highWaterMark, 1);
-		},
+		tests: {
+			'default strategy'() {
+				let source = new BaseStringSource();
+				let stream = new ReadableStream<string>(source);
+				assert.isNotNull(stream.strategy);
+				assert.isUndefined(stream.strategy.size);
+				assert.strictEqual(stream.strategy.highWaterMark, 1);
+			},
 
-		'strategy'() {
-			let stream: ReadableStream<string>;
-			let source = new BaseStringSource();
-			stream = new ReadableStream<string>(source, strategy);
-			assert.isNotNull(stream);
-			assert.isNotNull(stream.strategy);
-			assert.isNotNull(stream.strategy.size);
-			assert.strictEqual(stream.strategy.highWaterMark, 2);
-			assert.strictEqual((<any> stream).strategy.size('test'), 1);
+			'strategy'() {
+				let stream: ReadableStream<string>;
+				let source = new BaseStringSource();
+				stream = new ReadableStream<string>(source, strategy);
+				assert.isNotNull(stream);
+				assert.isNotNull(stream.strategy);
+				assert.isNotNull(stream.strategy.size);
+				assert.strictEqual(stream.strategy.highWaterMark, 2);
+				assert.strictEqual((<any> stream).strategy.size('test'), 1);
 
-			// changing the source's strategy does not affect the stream that has already been created.
-			strategy = {
-				size: function (chunk: string) {
-					return 10;
-				},
-				highWaterMark: 25
-			};
-			assert.strictEqual(stream.strategy.highWaterMark, 2);
-			assert.strictEqual((<any> stream).strategy.size('test'), 1);
-		},
+				// changing the source's strategy does not affect the stream that has already been created.
+				strategy = {
+					size: function (chunk: string) {
+						return 10;
+					},
+					highWaterMark: 25
+				};
+				assert.strictEqual(stream.strategy.highWaterMark, 2);
+				assert.strictEqual((<any> stream).strategy.size('test'), 1);
+			},
 
-		'strategy size() throw error'() {
-			let source = new BaseStringSource();
-			let strategy = {
-				size: function (chunk: string): number {
-					throw new Error('Size failure');
-				},
-				highWaterMark: 2
-			};
+			'strategy size() throw error'() {
+				let source = new BaseStringSource();
+				let strategy = {
+					size: function (chunk: string): number {
+						throw new Error('Size failure');
+					},
+					highWaterMark: 2
+				};
 
-			let stream = new ReadableStream(source, strategy);
-			assert.throws(function () {
-				stream.enqueue('This is a test');
-			});
+				let stream = new ReadableStream(source, strategy);
+				assert.throws(function () {
+					stream.enqueue('This is a test');
+				});
+			}
 		}
 	},
 

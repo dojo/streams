@@ -1,12 +1,11 @@
-import * as assert from 'intern/chai!assert';
-import * as registerSuite from 'intern!object';
+const { assert } = intern.getPlugin('chai');
+const { registerSuite } = intern.getInterface('object');
 import * as util from '../../src/util';
 
 const BOOLEAN_SIZE = 4;
 const NUMBER_SIZE = 8;
 
-registerSuite({
-	name: 'util',
+registerSuite('util', {
 
 	getApproximateByteSize: {
 		boolean() {

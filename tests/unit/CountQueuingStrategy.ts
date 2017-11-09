@@ -1,13 +1,12 @@
-import * as assert from 'intern/chai!assert';
-import * as registerSuite from 'intern!object';
+const { assert } = intern.getPlugin('chai');
+const { registerSuite } = intern.getInterface('object');
 import CountQueuingStrategy from '../../src/CountQueuingStrategy';
 import WritableStream, { State } from '../../src/WritableStream';
 import ManualSink from './helpers/ManualSink';
 
 const ASYNC_TIMEOUT = 1000;
 
-registerSuite({
-	name: 'CountQueuingStrategy',
+registerSuite('CountQueuingStrategy', {
 
 	size(this: any) {
 		let dfd = this.async(ASYNC_TIMEOUT);

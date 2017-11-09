@@ -1,34 +1,32 @@
+const { assert } = intern.getPlugin('chai');
+const { registerSuite } = intern.getInterface('object');
 import Task from '@dojo/core/async/Task';
 import { queueTask } from '@dojo/core/queue';
 import { Headers, Response } from '@dojo/core/request';
-import * as registerSuite from 'intern!object';
-import * as assert from 'intern/chai!assert';
+import Observable from '@dojo/core/Observable';
 import ArraySink from '../../src/ArraySink';
 import pipeToStream from '../../src/pipeToStream';
 import WritableStream from '../../src/WritableStream';
 
 class MockResponse extends Response {
-	data: string[];
+	_data: string[];
+	data: Observable<string>;
+	download: Observable<number>;
 
 	constructor(data: string[]) {
 		super();
 
-		this.data = data;
-
-		queueTask(() => {
-			data.forEach(chunk => {
-				this.emit({
-					type: 'data',
-					response: this,
-					chunk
+		this.data = new Observable(observer => {
+			queueTask(() => {
+				data.forEach(chunk => {
+					observer.next(chunk);
 				});
-			});
 
-			this.emit({
-				type: 'end',
-				response: this
+				observer.complete();
 			});
 		});
+		this._data = data;
+
 	}
 
 	get bodyUsed(): boolean {
@@ -72,8 +70,7 @@ class MockResponse extends Response {
 	}
 }
 
-registerSuite({
-	name: 'pipeToStream',
+registerSuite('pipeToStream', {
 
 	'sends data to stream'() {
 		const response = new MockResponse([

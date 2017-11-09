@@ -22,7 +22,7 @@ export default class ArraySink<T> implements Sink<T> {
 		return Promise.resolve();
 	}
 
-	start(error: () => void): Promise<void> {
+	start(error: (error: Error) => void): Promise<void> {
 		this.chunks = [];
 		return resolved;
 	}
