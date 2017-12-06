@@ -21,20 +21,19 @@
     "test": "grunt test"
   },
   "peerDependencies": {
-    "@dojo/core": "2.0.0-beta2.4",
-    "@dojo/has": "2.0.0-beta2.3",
-    "@dojo/shim": "2.0.0-beta2.4"
+    "@dojo/core": "~0.3.0",
+    "@dojo/has": "~0.1.1",
+    "@dojo/shim": "~0.2.3"
   },
   "devDependencies": {
-    "@dojo/interfaces": "2.0.0-beta2.4",
-    "@dojo/loader": "2.0.0-beta2.3",
-    "@types/chai": "~3.4.0",
+    "@dojo/interfaces": "~0.2.0",
+    "@dojo/loader": "~0.1.1",
     "@types/formidable": "~1.0.0",
     "@types/glob": "~5.0.0",
     "@types/grunt": "~0.4.0",
     "grunt": "^1.0.1",
     "grunt-dojo2": "latest",
     "intern": "~4.1.0",
-    "typescript": "~2.4.0"
+    "typescript": "~2.6.1"
   }
 }

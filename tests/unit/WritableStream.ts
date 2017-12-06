@@ -10,7 +10,7 @@ const ASYNC_TIMEOUT = 1000;
 let stream: WritableStream<string>;
 let sink: Sink<string>;
 let strategy: Strategy<string> = {
-	size(chunk: string) {
+	size(chunk?: string | null) {
 		return 1;
 	},
 	highWaterMark: Infinity
@@ -227,7 +227,7 @@ registerSuite('WritableStream', {
 				let sink = new ManualSink<string>();
 
 				stream = new WritableStream(sink, {
-					size: function (chunk: string) {
+					size: function (chunk?: string | null) {
 						return 1;
 					},
 					highWaterMark: 1
@@ -259,7 +259,7 @@ registerSuite('WritableStream', {
 				];
 
 				stream = new WritableStream(sink, {
-					size: function (chunk: string) {
+					size: function (chunk?: string | null) {
 						return 1;
 					},
 					highWaterMark: 1
@@ -289,7 +289,7 @@ registerSuite('WritableStream', {
 
 			'handles strategy.size error'() {
 				stream = new WritableStream(sink, {
-					size(chunk: string): number {
+					size(chunk?: string | null): number {
 						throw new Error('Strategy.size test error');
 					},
 					highWaterMark: Infinity

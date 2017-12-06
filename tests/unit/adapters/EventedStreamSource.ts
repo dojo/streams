@@ -31,7 +31,7 @@ registerSuite('EventedStreamSource', {
 			emitter.emit(testEvent);
 
 			return reader.read().then(function (result: ReadResult<Event>) {
-				assert.strictEqual(result.value, testEvent,
+				assert.strictEqual(result.value, testEvent as any,
 					'Event read from stream should be the same as the event emitted by emitter');
 			});
 		},
@@ -54,10 +54,10 @@ registerSuite('EventedStreamSource', {
 			emitter.emit(orangeEvent);
 
 			return reader.read().then(function (result: ReadResult<Event>) {
-				assert.strictEqual(result.value, appleEvent);
+				assert.strictEqual(result.value, appleEvent as any);
 
 				return reader.read().then(function (result: ReadResult<Event>) {
-					assert.strictEqual(result.value, orangeEvent);
+					assert.strictEqual(result.value, orangeEvent as any);
 				});
 			});
 		},

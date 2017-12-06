@@ -147,7 +147,7 @@ registerSuite('ReadableStream', {
 	'strategy': {
 		beforeEach() {
 			strategy = {
-				size: function (chunk: string) {
+				size: function (chunk?: string | null) {
 					return 1;
 				},
 				highWaterMark: 2
@@ -175,7 +175,7 @@ registerSuite('ReadableStream', {
 
 				// changing the source's strategy does not affect the stream that has already been created.
 				strategy = {
-					size: function (chunk: string) {
+					size: function (chunk?: string | null) {
 						return 10;
 					},
 					highWaterMark: 25
@@ -187,7 +187,7 @@ registerSuite('ReadableStream', {
 			'strategy size() throw error'() {
 				let source = new BaseStringSource();
 				let strategy = {
-					size: function (chunk: string): number {
+					size: function (chunk?: string | null): number {
 						throw new Error('Size failure');
 					},
 					highWaterMark: 2
@@ -213,7 +213,7 @@ registerSuite('ReadableStream', {
 		'enqueue'() {
 			let source = new BaseStringSource();
 			let strategy: Strategy<string> = {
-				size: function (chunk: string) {
+				size: function (chunk?: string | null) {
 					return 1;
 				},
 				highWaterMark: 2
@@ -235,7 +235,7 @@ registerSuite('ReadableStream', {
 		'enqueue size'() {
 			let source = new BaseStringSource();
 			let strategy: Strategy<string> = {
-				size: function (chunk: string) {
+				size: function (chunk?: string | null) {
 					return 5;
 				},
 				highWaterMark: 15
@@ -263,7 +263,7 @@ registerSuite('ReadableStream', {
 		'enqueue with read requests'() {
 			let source = new BaseStringSource();
 			let strategy: Strategy<string> = {
-				size: function (chunk: string) {
+				size: function (chunk?: string | null) {
 					return 1;
 				},
 				highWaterMark: 2

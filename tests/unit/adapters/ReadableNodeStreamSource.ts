@@ -5,9 +5,9 @@ import Promise from '@dojo/shim/Promise';
 import ReadableStream from '../../../src/ReadableStream';
 import { ReadResult } from '../../../src/ReadableStreamReader';
 import ReadableStreamController from '../../../src/ReadableStreamController';
-import ReadableNodeStreamSource from '../../../src/adapters/ReadableNodeStreamSource';
+import ReadableNodeStreamSource, { NodeSourceType } from '../../../src/adapters/ReadableNodeStreamSource';
 
-class Controller extends ReadableStreamController<string> {
+class Controller extends ReadableStreamController<NodeSourceType> {
 	enqueuedValue: string;
 	closed: boolean;
 	stream: any;
@@ -62,7 +62,7 @@ class CountStream extends Readable {
 }
 
 let nodeStream: CountStream;
-let stream: ReadableStream<string>;
+let stream: ReadableStream<NodeSourceType>;
 let source: ReadableNodeStreamSource;
 let controller: Controller;
 
@@ -98,12 +98,12 @@ registerSuite('ReadableNodeStreamSource', {
 		},
 
 		'retrieve new data'() {
-			stream = new ReadableStream<string>(source, { highWaterMark: 1 });
+			stream = new ReadableStream<NodeSourceType>(source, { highWaterMark: 1 });
 			let reader = stream.getReader();
 			let readIndex = 0;
 
 			function readNext(): Promise<void> {
-				return reader.read().then(function (result: ReadResult<string>) {
+				return reader.read().then(function (result: ReadResult<NodeSourceType>) {
 					if (result.done) {
 						return Promise.resolve();
 					}

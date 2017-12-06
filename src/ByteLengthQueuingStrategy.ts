@@ -2,7 +2,7 @@ import QueuingStrategy from './QueuingStrategy';
 import { getApproximateByteSize } from './util';
 
 export default class ByteLengthQueuingStrategy<T> extends QueuingStrategy<T> {
-	size(chunk: T): number {
+	size(chunk?: T | null): number {
 		if ((<any> chunk).byteLength !== undefined) {
 			return (<any> chunk).byteLength;
 		}

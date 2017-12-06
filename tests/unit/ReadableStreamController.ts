@@ -10,7 +10,7 @@ let stream: ReadableStream<string>;
 let source: Source<string>;
 let controller: ReadableStreamController<string>;
 let strategy: Strategy<string> = {
-	size(chunk: string) {
+	size(chunk?: string | null) {
 		return 1;
 	},
 	highWaterMark: Infinity
@@ -52,7 +52,7 @@ registerSuite('ReadableStreamController', {
 
 		'desiredSize'() {
 			let strategy: Strategy<string> = {
-				size(chunk: string) {
+				size(chunk?: string | null) {
 					return 1;
 				},
 				highWaterMark: 10

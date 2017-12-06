@@ -1,6 +1,6 @@
 const { assert } = intern.getPlugin('chai');
 const { registerSuite } = intern.getInterface('object');
-import has from '@dojo/has/has';
+import has from '@dojo/core/has';
 import ByteLengthQueuingStrategy from '../../src/ByteLengthQueuingStrategy';
 import WritableStream, { State } from '../../src/WritableStream';
 import ManualSink from './helpers/ManualSink';

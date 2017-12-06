@@ -14,14 +14,14 @@ class CharToCodeTransform implements Transform<number, string> {
 
 	constructor() {
 		this.readableStrategy = {
-			size(chunk: number) {
+			size(chunk?: number | null) {
 				return 1;
 			},
 			highWaterMark: Infinity
 		};
 
 		this.writableStrategy = {
-			size(chunk: string) {
+			size(chunk?: string | null) {
 				return 1;
 			},
 			highWaterMark: Infinity
