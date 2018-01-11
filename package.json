@@ -34,5 +34,8 @@
     "grunt-dojo2": "latest",
     "intern": "~4.1.0",
     "typescript": "~2.6.1"
+  },
+  "dependencies": {
+    "tslib": "~1.8.1"
   }
 }
