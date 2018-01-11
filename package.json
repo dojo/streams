@@ -26,7 +26,6 @@
     "@dojo/shim": "~0.2.3"
   },
   "devDependencies": {
-    "@dojo/interfaces": "~0.2.0",
     "@dojo/loader": "~0.1.1",
     "@types/formidable": "~1.0.0",
     "@types/glob": "~5.0.0",
