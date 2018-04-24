@@ -91,3 +91,9 @@ or
 ## Licensing information
 
 © 2004–2018 [JS Foundation](https://js.foundation/) & contributors. [New BSD](http://opensource.org/licenses/BSD-3-Clause) license.
+
+<!-- doc-viewer-config
+{
+	"api": "docs/api.json",
+}
+-->
