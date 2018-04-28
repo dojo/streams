@@ -30,6 +30,7 @@
     "@types/formidable": "~1.0.0",
     "@types/glob": "~5.0.0",
     "@types/grunt": "~0.4.0",
+    "@types/node": "~9.6.5",
     "grunt": "^1.0.1",
     "grunt-dojo2": "latest",
     "intern": "~4.1.0",
